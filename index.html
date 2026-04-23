@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucas & Sayuri - Nossa História</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <style>
+        /* =========================================================
+           RESET BÁSICO E VARIÁVEIS
+           ========================================================= */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body, html { width: 100%; min-height: 100vh; background-color: #000; color: #fff; overflow-x: hidden; scroll-behavior: smooth; }
+
+        #loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #111; color: #fff; display: flex; justify-content: center; align-items: center;
+            z-index: 9999; font-weight: 300; letter-spacing: 2px; transition: opacity 0.5s ease;
+        }
+
+        /* =========================================================
+           SISTEMA DE CAMADAS (FUNDO FIXO EMBAIXO DE TUDO)
+           ========================================================= */
+        .background-fixed {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            z-index: 1; transition: background-image 0.8s ease;
+        }
+        
+        .background-fixed::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.85)); z-index: 2;
+        }
+
+        /* =========================================================
+           CABEÇALHO (NAVBAR)
+           ========================================================= */
+        header {
+            position: fixed; top: 0; left: 0; width: 100%; padding: 30px 5%;
+            display: flex; justify-content: space-between; align-items: center; z-index: 100;
+            transition: background 0.4s, padding 0.4s;
+        }
+        header.scrolled { background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(12px); padding: 15px 5%; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        .logo { font-size: 1.5rem; font-weight: 400; letter-spacing: 1px; text-decoration: none; color: #ffffff; cursor: pointer; transition: 0.3s;}
+        .logo:hover { opacity: 0.8; }
+        
+        nav { display: flex; align-items: center; gap: 35px; }
+        .nav-links { display: flex; gap: 35px; list-style: none; }
+        .nav-links a { text-decoration: none; color: #ffffff; font-size: 0.85rem; font-weight: 400; letter-spacing: 0.5px; transition: opacity 0.3s ease; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .nav-links a:hover, .nav-links a.active { opacity: 0.6; }
+
+        .btn-outline {
+            background: transparent; color: #ffffff; border: 1px solid #ffffff; padding: 12px 25px;
+            font-size: 0.85rem; font-weight: 400; letter-spacing: 0.5px; cursor: pointer;
+            text-decoration: none; transition: all 0.3s ease; display: inline-block; border-radius: 4px;
+        }
+        .btn-outline:hover { background: #ffffff; color: #000000; }
+        .mobile-menu-btn { display: none; background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; }
+
+        /* =========================================================
+           CONTROLES DE VIEWS (Capa, Artigo, Timeline, etc)
+           ========================================================= */
+        .view-section {
+            width: 100%; min-height: 100vh; display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; position: absolute; top: 0; left: 0;
+            transition: opacity 0.6s ease, transform 0.6s ease; z-index: 10;
+        }
+        .view-section.active { opacity: 1; pointer-events: auto; position: relative; z-index: 20; }
+
+        /* VISÃO 1: CAPA PRINCIPAL */
+        .hero-content { text-align: center; width: 90%; max-width: 900px; transform: translateY(0); transition: 0.6s; margin-top: 50px; }
+        .hero-content h1 { font-family: 'Playfair Display', serif; font-size: 5rem; font-weight: 500; letter-spacing: 2px; margin-bottom: 15px; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .hero-content p { font-size: 1.2rem; font-weight: 300; letter-spacing: 1px; margin-bottom: 25px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        
+        /* =========================================================
+           VÍDEO DA CAPA E MODAL DE TELA CHEIA (POP-UP)
+           ========================================================= */
+        .hero-video-wrapper {
+            position: relative; width: max-content; max-width: 100%;
+            margin: 0 auto 30px auto; border-radius: 12px; overflow: hidden; 
+            cursor: pointer; border: 1px solid rgba(212,175,55,0.5); 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8); display: none; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hero-video-wrapper:hover {
+            transform: translateY(-5px); box-shadow: 0 20px 50px rgba(212,175,55,0.2);
+        }
+        .hero-video-wrapper video {
+            display: block; width: auto; height: auto; 
+            max-width: 100%; max-height: 65vh; margin: 0 auto; 
+        }
+
+        .play-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.15); display: flex; justify-content: center; align-items: center;
+            z-index: 2; transition: all 0.4s ease;
+        }
+        .play-button-glass {
+            width: 75px; height: 75px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(212,175,55,0.6); display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 20px rgba(212,175,55,0.3), inset 0 0 15px rgba(255,255,255,0.1);
+            transition: all 0.3s ease; animation: pulseGold 2.5s infinite;
+        }
+        .play-button-glass i { font-size: 2.8rem; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); margin-left: 5px; }
+        
+        @keyframes pulseGold {
+            0% { box-shadow: 0 0 0 0 rgba(212,175,55,0.5); }
+            70% { box-shadow: 0 0 0 15px rgba(212,175,55,0); }
+            100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); }
+        }
+
+        .hero-video-wrapper:hover .play-overlay { background: rgba(0,0,0,0.4); backdrop-filter: blur(2px); }
+        .hero-video-wrapper:hover .play-button-glass { transform: scale(1.1); background: rgba(212,175,55,0.25); border-color: #d4af37; }
+
+        .video-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(5,5,5,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            z-index: 100000; display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.4s ease;
+        }
+        .video-modal-overlay.active { opacity: 1; }
+        
+        .video-modal-content {
+            position: relative; width: 95%; max-width: 420px; 
+            padding: 8px; background: rgba(20, 20, 20, 0.6);
+            border-radius: 16px; border: 1px solid rgba(212,175,55,0.3);
+            box-shadow: 0 30px 70px rgba(0,0,0,0.9), inset 0 0 20px rgba(255,255,255,0.05);
+            transform: scale(0.95) translateY(20px); transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex; justify-content: center;
+        }
+        .video-modal-overlay.active .video-modal-content { transform: scale(1) translateY(0); }
+        .video-modal-content video { width: 100%; max-height: 80vh; border-radius: 10px; background: #000; outline: none; object-fit: contain; display: block; }
+        
+        .video-modal-close {
+            position: absolute; top: -15px; right: -15px; 
+            background: rgba(20,20,20,0.9); border: 1px solid rgba(212,175,55,0.6); 
+            border-radius: 50%; width: 44px; height: 44px;
+            display: flex; justify-content: center; align-items: center;
+            color: #fff; font-size: 1.8rem; cursor: pointer; transition: 0.3s; z-index: 100001;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .video-modal-close:hover { color: #111; background: #d4af37; transform: scale(1.1) rotate(90deg); }
+
+        .btn-voltar {
+            background: none; border: none; color: #ccc; font-size: 0.85rem; letter-spacing: 1px;
+            text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+            margin-bottom: 30px; transition: 0.3s; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .btn-voltar:hover { color: #fff; transform: translateX(-5px); }
+
+        .article-title {
+            font-family: 'Playfair Display', serif; font-size: 3.2rem; font-weight: 500;
+            color: #fff; text-align: center; margin-bottom: 35px; line-height: 1.2; text-shadow: 0 4px 15px rgba(0,0,0,0.6);
+        }
+
+        /* VISÃO 2: ARTIGO DE TEXTO */
+        .article-content {
+            width: 100%; max-width: 850px; margin: 120px auto 80px auto;
+            background: rgba(15, 15, 15, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px;
+            padding: 60px; box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            transform: translateY(30px); transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .view-section.active .article-content { transform: translateY(0); }
+
+        .article-media-wrapper { width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 45px; box-shadow: 0 15px 40px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); }
+        .article-media-wrapper img, .article-media-wrapper video { width: 100%; height: auto; max-height: 500px; object-fit: cover; display: block; }
+        
+        .quill-content { font-size: 1.05rem; line-height: 1.9; color: #ddd; font-weight: 300; text-align: justify; }
+        .quill-content p { margin-bottom: 20px; }
+        .quill-content h1, .quill-content h2, .quill-content h3 { font-family: 'Playfair Display', serif; color: #d4af37; margin-top: 40px; margin-bottom: 15px; font-weight: 500; text-align: center; font-size: 2rem;}
+
+        .romantic-article { text-align: justify; padding: 0 20px; }
+        .romantic-article p { font-size: 1.15rem; line-height: 2.2; margin-bottom: 30px; color: #fdfdfd; font-weight: 300; }
+        .romantic-article .dropcap::first-letter, .romantic-article p:first-of-type::first-letter {
+            font-family: 'Playfair Display', serif; font-size: 4.5rem; color: #d4af37; float: left;
+            line-height: 0.8; margin-right: 12px; margin-top: 8px; text-shadow: 0 2px 10px rgba(212,175,55,0.3);
+        }
+        .romantic-article blockquote {
+            font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.6rem;
+            color: #d4af37; text-align: center; padding: 40px 20px; margin: 50px 0;
+            position: relative; border: none; line-height: 1.6;
+        }
+        .romantic-article blockquote::before, .romantic-article blockquote::after { content: '❦'; display: block; font-size: 1.8rem; color: #d4af37; opacity: 0.6; }
+        .romantic-article blockquote::before { margin-bottom: 20px; }
+        .romantic-article blockquote::after { margin-top: 20px; }
+
+        /* VISÃO 3: LINHA DO TEMPO */
+        .timeline-container { width: 100%; max-width: 1400px; margin: 100px auto 40px auto; padding: 20px 0; transform: translateY(30px); transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
+        .view-section.active .timeline-container { transform: translateY(0); }
+        .timeline-header { padding: 0 5%; text-align: center; }
+        .timeline-header .btn-voltar { margin-bottom: 15px; justify-content: center; }
+        .timeline-scroll { width: 100%; overflow-x: auto; padding: 20px 5%; scrollbar-width: thin; scrollbar-color: #d4af37 transparent; cursor: grab; }
+        .timeline-scroll:active { cursor: grabbing; }
+        .timeline-scroll::-webkit-scrollbar { height: 6px; }
+        .timeline-scroll::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 4px; }
+        .timeline-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 4px; }
+        .timeline-track { display: inline-flex; align-items: center; position: relative; height: 440px; gap: 50px; min-width: 100%; }
+        .timeline-line { position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255,255,255,0.25); z-index: 0; transform: translateY(-50%); }
+        .timeline-item { position: relative; z-index: 1; width: 200px; height: 100%; display: flex; flex-direction: column; flex-shrink: 0; }
+        .t-content { position: absolute; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%; }
+        .timeline-item.up .t-content { bottom: 50%; padding-bottom: 25px; justify-content: flex-end; }
+        .timeline-item.down .t-content { top: 50%; padding-top: 25px; justify-content: flex-start; }
+        .t-media { width: 160px; height: 160px; border-radius: 8px; object-fit: cover; border: 1px solid #d4af37; box-shadow: 0 10px 25px rgba(0,0,0,0.5); background: #222; }
+        .t-text { background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 12px 15px; border-radius: 6px; font-size: 0.75rem; text-align: center; color: #eee; width: 100%; border: 1px solid rgba(255,255,255,0.1); line-height: 1.5; font-style: italic; box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
+        .t-dot { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 14px; height: 14px; background: #d4af37; border-radius: 50%; box-shadow: 0 0 0 4px rgba(0,0,0,0.5), 0 0 10px rgba(212,175,55,0.8); z-index: 2; }
+
+        /* VISÃO 4: MOSAICO */
+        .mosaic-container { width: 100%; max-width: 1100px; margin: 120px auto 80px auto; padding: 0 5%; transform: translateY(30px); transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
+        .view-section.active .mosaic-container { transform: translateY(0); }
+        .mosaic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); grid-auto-rows: 180px; gap: 15px; }
+        .mosaic-item { border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease; background: #222; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .mosaic-item:hover { transform: scale(1.03); z-index: 10; box-shadow: 0 15px 30px rgba(0,0,0,0.6); border-color: #d4af37; }
+        .mosaic-item img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s; }
+        .mosaic-item:hover img { opacity: 0.9; }
+        .mosaic-item.large { grid-column: span 2; grid-row: span 2; }
+        .mosaic-item.wide { grid-column: span 2; }
+        .mosaic-item.tall { grid-row: span 2; }
+
+        /* VISÃO 5: CORAÇÃO DE FOTOS */
+        .family-container { width: 100%; max-width: 1200px; margin: 120px auto 80px auto; padding: 0 5%; transform: translateY(30px); transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1); text-align: center; }
+        .view-section.active .family-container { transform: translateY(0); }
+        .heart-stage { position: relative; width: 100%; max-width: 650px; margin: 40px auto; aspect-ratio: 1 / 0.9; display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .family-photo { width: 100%; height: 100%; object-fit: cover; border: 1px solid #d4af37; border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: transform 0.3s ease, z-index 0s; }
+        .family-photo:hover { transform: scale(1.15) rotate(2deg); z-index: 5; box-shadow: 0 10px 25px rgba(0,0,0,0.7); }
+        .f-p1 { grid-column: 2; grid-row: 1; } .f-p2 { grid-column: 3; grid-row: 1; } .f-p3 { grid-column: 5; grid-row: 1; } .f-p4 { grid-column: 6; grid-row: 1; }
+        .f-p5 { grid-column: 1; grid-row: 2; } .f-p6 { grid-column: 2; grid-row: 2; } .f-p7 { grid-column: 3; grid-row: 2; } .f-p8 { grid-column: 4; grid-row: 2; } .f-p9 { grid-column: 5; grid-row: 2; } .f-p10 { grid-column: 6; grid-row: 2; } .f-p11 { grid-column: 7; grid-row: 2; }
+        .f-p12 { grid-column: 2 / span 2; grid-row: 3; aspect-ratio: 2/1;} .f-p13 { grid-column: 4; grid-row: 3; } .f-p14 { grid-column: 5 / span 2; grid-row: 3; aspect-ratio: 2/1;}
+        .f-p15 { grid-column: 3; grid-row: 4; } .f-p16 { grid-column: 4; grid-row: 4; } .f-p17 { grid-column: 5; grid-row: 4; }
+        .f-p18 { grid-column: 4; grid-row: 5; }
+
+        /* =========================================================
+           RESPONSIVIDADE
+           ========================================================= */
+        @media (max-width: 900px) {
+            .hero-content h1 { font-size: 3.5rem; }
+            .nav-links { position: fixed; top: 0; right: -100%; width: 280px; height: 100vh; background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(10px); flex-direction: column; align-items: flex-start; padding: 100px 40px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+            .nav-links.active { right: 0; }
+            .nav-links a { font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: block; width: 100%; padding-bottom: 15px; }
+            .header-btn { display: none; } .mobile-menu-btn { display: block; z-index: 101; }
+            .article-content { padding: 40px 25px; margin-top: 100px; width: 92%; }
+            .article-title { font-size: 2.4rem; }
+            .romantic-article p { font-size: 1rem; }
+            .romantic-article blockquote { font-size: 1.3rem; padding: 20px 10px; }
+            .timeline-container { margin-top: 100px; padding: 20px 0; } .timeline-track { height: 420px; gap: 40px; } .timeline-item { width: 180px; } .t-media { width: 140px; height: 140px; } .t-text { font-size: 0.7rem; }
+            .mosaic-container { padding: 0 3%; margin-top: 100px; width: 98%; } .mosaic-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); grid-auto-rows: 140px; gap: 10px; }
+            .family-container { margin-top: 100px; padding: 0 3%; } .heart-stage { max-width: 90vw; gap: 6px; }
+        }
+
+        @media (max-width: 600px) {
+            .hero-content h1 { font-size: 2.8rem; }
+            .hero-content p { font-size: 0.9rem; line-height: 1.6; }
+            .hero-video-wrapper video { max-height: 450px; } 
+            .video-modal-content { max-width: 95%; padding: 5px; }
+            header { padding: 20px 5%; } .logo { font-size: 1.2rem; }
+            .article-content { padding: 35px 20px; margin-top: 90px; }
+            .article-title { font-size: 2rem; }
+            .romantic-article p { font-size: 0.95rem; }
+            .romantic-article .dropcap::first-letter, .romantic-article p:first-of-type::first-letter { font-size: 3.5rem; }
+            .timeline-container { margin-top: 80px; padding: 5px 0; } .timeline-header .article-title { font-size: 2rem; margin-bottom: 10px;} .timeline-track { height: 380px; gap: 30px; padding: 0 20px;} .timeline-item { width: 160px; } .t-media { width: 120px; height: 120px; border-width: 1px; } .t-text { font-size: 0.65rem; padding: 8px 10px; } .t-dot { width: 12px; height: 12px; }
+            .mosaic-container { padding: 0 2%; margin-top: 90px; } .mosaic-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 150px; gap: 8px; } .mosaic-item.large { grid-column: span 2; grid-row: span 2; } .mosaic-item.wide { grid-column: span 2; } .mosaic-item.tall { grid-row: span 1; grid-column: span 1; }
+            .family-container { margin-top: 90px; } .family-container .article-title { font-size: 2rem; margin-bottom: 10px; } .heart-stage { gap: 4px; } .family-photo { border-radius: 2px; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="musica-casal" loop>
+        <source src="./img/Baco Exu do Blues - Te Amo Disgraça - Com Grave ELETROGRAVE.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="loading-screen">Resgatando memórias...</div>
+
+    <div class="background-fixed" id="hero-bg"></div>
+
+    <header id="main-header">
+        <a class="logo" id="logo-text" onclick="voltarParaCapa()">Lucas & Sayuri</a>
+        
+        <nav>
+            <ul class="nav-links" id="nav-links-container">
+                </ul>
+            <a href="#" class="btn-outline header-btn" id="header-cta" style="display: none;"></a>
+            <button class="mobile-menu-btn" id="btn-mobile-menu"><i class="ri-menu-3-line"></i></button>
+        </nav>
+    </header>
+
+    <main id="view-hero" class="view-section active">
+        <div class="hero-content">
+            <h1 id="main-title"></h1>
+            <p id="main-subtitle"></p>
+
+            <div id="hero-video-wrapper" class="hero-video-wrapper" onclick="abrirVideoModal()">
+                <div class="play-overlay">
+                    <div class="play-button-glass">
+                        <i class="ri-play-fill"></i>
+                    </div>
+                </div>
+                <video id="hero-video" src="" playsinline muted preload></video>
+            </div>
+
+            <a href="#" class="btn-outline" id="main-cta" style="display: none;"></a>
+        </div>
+    </main>
+
+    <main id="view-article" class="view-section">
+        <article class="article-content">
+            <button class="btn-voltar" onclick="voltarParaCapa()"><i class="ri-arrow-left-line"></i> Voltar ao Início</button>
+            <h2 id="article-title" class="article-title">Título da Aba</h2>
+            <div id="article-media" class="article-media-wrapper" style="display: none;"></div>
+            <div id="article-body" class="quill-content"></div>
+        </article>
+    </main>
+
+    <main id="view-timeline" class="view-section">
+        <div class="timeline-container">
+            <div class="timeline-header">
+                <button class="btn-voltar" onclick="voltarParaCapa()"><i class="ri-arrow-left-line"></i> Voltar ao Início</button>
+                <h2 class="article-title" id="timeline-title">Nossa História</h2>
+            </div>
+            <div class="timeline-scroll" id="timeline-scroll">
+                <div class="timeline-track" id="timeline-track">
+                    <div class="timeline-line"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-mosaic" class="view-section">
+        <div class="mosaic-container">
+            <div style="text-align: center;">
+                <button class="btn-voltar" onclick="voltarParaCapa()" style="justify-content: center; width: 100%;"><i class="ri-arrow-left-line"></i> Voltar ao Início</button>
+                <h2 class="article-title" id="mosaic-title">Nossos Momentos</h2>
+            </div>
+            <div class="mosaic-grid" id="mosaic-grid"></div>
+        </div>
+    </main>
+
+    <main id="view-family" class="view-section">
+        <div class="family-container">
+            <div>
+                <button class="btn-voltar" onclick="voltarParaCapa()" style="justify-content: center; width: 100%;"><i class="ri-arrow-left-line"></i> Voltar ao Início</button>
+                <h2 class="article-title" id="family-title">Nossa Família</h2>
+            </div>
+            <div class="heart-stage" id="family-heart-stage"></div>
+        </div>
+    </main>
+
+    <div id="video-modal" class="video-modal-overlay" onclick="fecharVideoModal()">
+        <div class="video-modal-content" onclick="event.stopPropagation()">
+            <button class="video-modal-close" onclick="fecharVideoModal()"><i class="ri-close-line"></i></button>
+            <video id="modal-video-player" controls playsinline></video>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================
+        // LOCAL DE ALIMENTAÇÃO DOS DADOS DO CASAL
+        // =========================================================
+        const dadosDoCasal = {
+            nomeAba: "Lucas & Sayuri",
+            tituloCapa: "Lucas & Sayuri",
+            textoAbaixo: "Cada momento ao seu lado é uma página inesquecível da nossa história.",
+            imagemFundo: "./img/img2.jpeg", // Fundo romântico
+            videoCapa: "./img/WhatsApp Video 2026-02-09 at 08 (online-video-cutter.com) (13).mp4", 
+            botaoTexto: "Nossa Música",
+            botaoUrl: "#", 
+            
+            abasExtras: {
+                // A ordem aqui dita a ordem no menu superior
+                historia: {
+                    eventos: [
+                        { texto: "O primeiro 'olá' que mudou as nossas vidas para sempre.", mediaUrl: "./img/img1.jpeg" },
+                        { texto: "Aquele sorriso que me desmontou e me ganhou de primeira.", mediaUrl: "./img/img2.jpeg" },
+                        { texto: "O nervosismo, a ansiedade e a magia do nosso primeiro encontro.", mediaUrl: "./img/img3.jpeg" },
+                        { texto: "O nosso primeiro beijo, exatamente quando o nosso 'para sempre' começou.", mediaUrl: "./img/img4.jpeg" },
+                        { texto: "O instante em que percebi que meu lugar favorito era com você.", mediaUrl: "./img/img5.jpeg" },
+                        { texto: "As nossas primeiras conversas e risadas até a barriga doer.", mediaUrl: "./img/img6.jpeg" },
+                        { texto: "O primeiro mês: descobrindo na prática o que é o amor de verdade.", mediaUrl: "./img/img7.jpeg" },
+                        { texto: "Nossa primeira viagem: o mundo inteiro ficou mais bonito ao seu lado.", mediaUrl: "./img/img8.jpeg" },
+                        { texto: "Descobrindo aos poucos as manias e os detalhes que eu mais amo em você.", mediaUrl: "./img/img9.jpeg" },
+                        { texto: "A cumplicidade que passou a se fortalecer em cada simples olhar.", mediaUrl: "./img/img10.jpeg" },
+                        { texto: "O nosso primeiro 'Eu te amo', uma memória inesquecível.", mediaUrl: "./img/img11.jpeg" },
+                        { texto: "A paz inexplicável que só o seu abraço apertado consegue me dar.", mediaUrl: "./img/img12.jpeg" },
+                        { texto: "Parceiros de vida, de festas e das melhores maratonas de séries.", mediaUrl: "./img/img13.jpeg" },
+                        { texto: "Comemorando os pequenos momentos que logo viraram nossas maiores memórias.", mediaUrl: "./img/img14.jpeg" },
+                        { texto: "O momento em que percebi que você transformou a minha rotina em poesia.", mediaUrl: "./img/img15.jpeg" },
+                        { texto: "Nossos corações finalmente batendo e caminhando no mesmo ritmo.", mediaUrl: "./img/img16.jpeg" },
+                        { texto: "O nosso primeiro ano juntos: 365 dias da melhor escolha que já fiz.", mediaUrl: "./img/img17.jpeg" },
+                        { texto: "Um brinde a nós, à nossa sintonia e a tudo que ainda vamos viver.", mediaUrl: "./img/img18.jpeg" },
+                        { texto: "A certeza absoluta de que, com você, qualquer lugar do mundo é a minha casa.", mediaUrl: "./img/img19.jpeg" },
+                        { texto: "Cada novo dia ao seu lado tem sido a minha melhor aventura.", mediaUrl: "./img/img20.jpeg" },
+                        { texto: "O brilho nos olhos que, mesmo com o tempo, continua igualzinho ao primeiro dia.", mediaUrl: "./img/img21.jpeg" },
+                        { texto: "Sayuri, a dona do meu coração e a razão da minha felicidade.", mediaUrl: "./img/img22.jpeg" },
+                        { texto: "Você me faz querer ser melhor todos os dias", mediaUrl: "./img/img23.jpeg" },
+                        { texto: "Enfrentando os dias bons e ruins, mas sempre de mãos dadas.", mediaUrl: "./img/img24.jpeg" },
+                        { texto: "A nossa música tocando de fundo enquanto a nossa vida acontece.", mediaUrl: "./img/img25.jpeg" },
+                        { texto: "Mais um mês pra nossa conta: a prova de que nosso amor só multiplica.", mediaUrl: "./img/img26.jpeg" },
+                        { texto: "Colecionando momentos perfeitos que guardarei para a eternidade.", mediaUrl: "./img/img27.jpeg" },
+                        { texto: "1 ano e 6 meses: comemorando os melhores 547 dias da nossa história.", mediaUrl: "./img/img28.jpeg" },
+                        { texto: "O amor da minha vida. Ontem, hoje, amanhã e depois.", mediaUrl: "./img/img29.jpeg" },
+                        { texto: "O grande 'Sim' no altar, o dia que eu mal posso esperar para viver.", mediaUrl: "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=400" },
+                        { texto: "A construção do nosso lar, com a nossa cara, nossa energia e nosso amor.", mediaUrl: "https://images.unsplash.com/photo-1513694490325-24b3ccfa7885?q=80&w=400" },
+                        { texto: "Nossas bodas: a promessa de te amar até ficarmos bem velhinhos.", mediaUrl: "https://images.unsplash.com/photo-1444090542259-0af8fa96557e?q=80&w=400" }
+                    ]
+                },
+                sobre: {
+                    media: "./img/img1.jpeg", 
+                    texto: `
+                        <div class="romantic-article">
+                            <p>Ao longo destes um ano e seis meses, descobri que o amor não é apenas uma palavra, mas uma construção diária feita de paciência, entrega e, acima de tudo, amizade. Lucas e Sayuri não são apenas dois nomes que se cruzaram; são duas almas que encontraram um lar uma na outra.</p>
+                            <p>Foram 547 dias de descobertas. Desde os pequenos detalhes, como o jeito que você sorri ao acordar, até os grandes desafios que superamos de mãos dadas. Cada segundo valeu a pena, porque em cada um deles, eu tive a certeza de que estava exatamente onde deveria estar: ao seu lado.</p>
+                            <blockquote>"Duvide que as estrelas sejam fogo, Duvide que o sol se mova, Duvide que a verdade seja mentira, Mas nunca duvide do meu amor"</blockquote>
+                            <p>Olho para trás e vejo uma trajetória linda, mas olho para frente e vejo algo ainda maior. Que venham as bodas, o altar, a casa cheia de risadas e o silêncio confortável de quem sabe que encontrou o amor da vida. Feliz 1 ano e 6 meses para nós!</p>
+                        </div>
+                    `
+                },
+                lacos: { 
+                    fotos: [
+                        "./img/img1.jpeg",
+                        "./img/img2.jpeg",
+                        "./img/img3.jpeg",
+                        "./img/img4.jpeg",
+                        "./img/img5.jpeg",
+                        "./img/img6.jpeg",
+                        "./img/img7.jpeg",
+                        "./img/img8.jpeg",
+                        "./img/img9.jpeg",
+                        "./img/img10.jpeg",
+                        "./img/img11.jpeg",
+                        "./img/img12.jpeg",
+                        "./img/img13.jpeg",
+                        "./img/img14.jpeg",
+                        "./img/img15.jpeg",
+                        "./img/img16.jpeg",
+                        "./img/img17.jpeg",
+                        "./img/img18.jpeg",
+                        "./img/img19.jpeg",
+                        "./img/img20.jpeg"
+                    ]
+                },
+                familia: { 
+                    fotos: [
+                        "./img/img1.jpeg",
+                        "./img/img2.jpeg",
+                        "./img/img3.jpeg",
+                        "./img/img4.jpeg",
+                        "./img/img5.jpeg",
+                        "./img/img6.jpeg",
+                        "./img/img7.jpeg",
+                        "./img/img8.jpeg",
+                        "./img/img9.jpeg",
+                        "./img/img10.jpeg",
+                        "./img/img11.jpeg",
+                        "./img/img12.jpeg",
+                        "./img/img13.jpeg",
+                        "./img/img14.jpeg",
+                        "./img/img15.jpeg",
+                        "./img/img16.jpeg",
+                        "./img/img17.jpeg"
+                    ] 
+                }
+            }
+        };
+
+        // =========================================================
+        // CONTROLE DO PLAYER DE MÚSICA
+        // =========================================================
+        window.toggleMusica = () => {
+            const audio = document.getElementById('musica-casal');
+            const btnCTA = document.getElementById('main-cta');
+            const headerCTA = document.getElementById('header-cta');
+            
+            if (audio.paused) {
+                audio.play();
+                if(btnCTA) btnCTA.innerHTML = '<i class="ri-pause-mini-fill"></i> Pausar Música';
+                if(headerCTA) headerCTA.innerHTML = '<i class="ri-pause-mini-fill"></i> Pausar Música';
+            } else {
+                audio.pause();
+                if(btnCTA) btnCTA.innerHTML = '<i class="ri-play-mini-fill"></i> Nossa Música';
+                if(headerCTA) headerCTA.innerHTML = '<i class="ri-play-mini-fill"></i> Nossa Música';
+            }
+        };
+
+        const conteudosAbas = {};
+
+        // === ARRASTAR A LINHA DO TEMPO (PC) ===
+        const slider = document.getElementById('timeline-scroll');
+        let isDown = false; let startX; let scrollLeft;
+
+        if(slider) {
+            slider.addEventListener('mousedown', (e) => {
+                isDown = true; slider.style.cursor = 'grabbing';
+                startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft;
+            });
+            slider.addEventListener('mouseleave', () => { isDown = false; slider.style.cursor = 'grab'; });
+            slider.addEventListener('mouseup', () => { isDown = false; slider.style.cursor = 'grab'; });
+            slider.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - slider.offsetLeft;
+                const walk = (x - startX) * 2; 
+                slider.scrollLeft = scrollLeft - walk;
+            });
+        }
+
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('main-header');
+            if (header && window.scrollY > 50) header.classList.add('scrolled');
+            else if (header) header.classList.remove('scrolled');
+        });
+
+        // Navegação Mestra com os Dados Locais
+        window.abrirAba = (chaveMenu, tituloAba) => {
+            const heroVid = document.getElementById('hero-video');
+            if(heroVid) heroVid.pause();
+
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+
+            if (chaveMenu === 'historia') {
+                document.getElementById('view-timeline').classList.add('active');
+                renderTimeline(conteudosAbas.historia?.eventos || []); 
+            } else if (chaveMenu === 'lacos') {
+                document.getElementById('view-mosaic').classList.add('active');
+                renderMosaic(conteudosAbas.lacos?.fotos || []); 
+            } else if (chaveMenu === 'familia') {
+                document.getElementById('view-family').classList.add('active');
+                renderFamilyHeart(conteudosAbas.familia?.fotos || []); 
+            } else {
+                document.getElementById('article-title').textContent = tituloAba;
+                const mediaWrapper = document.getElementById('article-media');
+                const abaData = conteudosAbas.sobre || {};
+                
+                if (abaData.media) {
+                    const urlLower = String(abaData.media).toLowerCase();
+                    const isVideo = urlLower.includes('mp4') || urlLower.includes('mov') || urlLower.includes('webm') || urlLower.includes('video') || urlLower.includes('vid');
+                    
+                    mediaWrapper.innerHTML = isVideo 
+                        ? `<video src="${abaData.media}" autoplay loop muted playsinline style="width: 100%; border-radius: 8px; border: 2px solid rgba(212,175,55,0.4);"></video>`
+                        : `<img src="${abaData.media}" style="width: 100%; border-radius: 8px; border: 2px solid rgba(212,175,55,0.4);">`;
+                    mediaWrapper.style.display = 'block';
+                } else {
+                    mediaWrapper.style.display = 'none';
+                }
+
+                let conteudoHTML = abaData.texto || "<p>Conteúdo em construção...</p>";
+                if (!conteudoHTML.includes('romantic-article') && chaveMenu === 'sobre') {
+                     conteudoHTML = `<div class="romantic-article">${conteudoHTML}</div>`;
+                }
+
+                document.getElementById('article-body').innerHTML = conteudoHTML;
+                document.getElementById('view-article').classList.add('active');
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const navLinks = document.getElementById('nav-links-container');
+            const mobileBtn = document.getElementById('btn-mobile-menu');
+            if(navLinks) navLinks.classList.remove('active');
+            if(mobileBtn) mobileBtn.innerHTML = '<i class="ri-menu-3-line"></i>';
+        };
+
+        window.voltarParaCapa = () => {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById('view-hero').classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            const modalOverlay = document.getElementById('video-modal');
+            if(!modalOverlay.classList.contains('active')){
+                const heroVid = document.getElementById('hero-video');
+                if(heroVid && heroVid.src) heroVid.play().catch(e=>console.log(e));
+            }
+        };
+
+        const mobileBtn = document.getElementById('btn-mobile-menu');
+        if(mobileBtn) {
+            mobileBtn.addEventListener('click', function() {
+                const nav = document.getElementById('nav-links-container');
+                if(nav) {
+                    nav.classList.toggle('active');
+                    this.innerHTML = nav.classList.contains('active') ? '<i class="ri-close-line"></i>' : '<i class="ri-menu-3-line"></i>';
+                }
+            });
+        }
+
+        // RENDERIZADORES DE TELAS COMPLEXAS
+        function renderTimeline(eventos) {
+            const track = document.getElementById('timeline-track');
+            if(!track) return;
+            track.innerHTML = '<div class="timeline-line"></div>';
+
+            if (!eventos || eventos.length === 0) {
+                track.innerHTML += `<p style="color:#fff; padding:20px;">Nenhum evento registrado.</p>`;
+                return;
+            }
+
+            eventos.forEach((evento, index) => {
+                const positionClass = index % 2 === 0 ? 'up' : 'down';
+                const textHtml = evento.texto ? `<div class="t-text">${evento.texto}</div>` : '';
+                let mediaHtml = '';
+                
+                if(evento.mediaUrl) {
+                    mediaHtml = evento.tipo === 'video' || evento.mediaUrl.match(/\.(mp4|webm|mov)$/i)
+                        ? `<video src="${evento.mediaUrl}" class="t-media" autoplay loop muted playsinline></video>` 
+                        : `<img src="${evento.mediaUrl}" class="t-media" alt="Momento">`;
+                }
+
+                track.innerHTML += `<div class="timeline-item ${positionClass}"><div class="t-dot"></div><div class="t-content">${mediaHtml}${textHtml}</div></div>`;
+            });
+        }
+
+        function renderMosaic(fotos) {
+            const grid = document.getElementById('mosaic-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            
+            if (!fotos || fotos.length === 0) {
+                grid.innerHTML = `<p style="color:#fff; text-align:center; grid-column: 1 / -1; width:100%;">Nenhuma foto registrada.</p>`;
+                return;
+            }
+
+            fotos.forEach((url, index) => {
+                let spanClass = '';
+                if (index === 0 || index === 8) spanClass = 'large'; else if (index === 3 || index === 14) spanClass = 'wide'; else if (index === 6 || index === 11) spanClass = 'tall';
+                grid.innerHTML += `<div class="mosaic-item ${spanClass}"><img src="${url}" alt="Projeto"></div>`;
+            });
+        }
+
+        function renderFamilyHeart(fotos) {
+            const stage = document.getElementById('family-heart-stage');
+            if(!stage) return;
+            stage.innerHTML = ''; 
+            
+            if (!fotos || fotos.length === 0) {
+                stage.innerHTML = `<p style="color:#fff; text-align:center; grid-column: span 7;">Nenhuma foto registrada.</p>`;
+                return;
+            }
+
+            fotos.forEach((url, index) => {
+                if (index < 18) { 
+                    stage.innerHTML += `<img src="${url}" class="family-photo f-p${index + 1}" alt="Membro ${index + 1}">`;
+                }
+            });
+        }
+
+        // CARREGAMENTO DOS DADOS LOCAIS (INICIALIZAÇÃO DO SITE)
+        function inicializarSite() {
+            const loadingScreen = document.getElementById('loading-screen');
+            const data = dadosDoCasal; 
+
+            // Preenche Capa e Metadados
+            const heroBg = document.getElementById('hero-bg');
+            if (heroBg && data.imagemFundo && data.imagemFundo !== "") {
+                heroBg.style.backgroundImage = `url('${data.imagemFundo}')`;
+            }
+
+            const logoText = document.getElementById('logo-text');
+            const mainTitle = document.getElementById('main-title');
+            const mainSubtitle = document.getElementById('main-subtitle');
+            
+            if(logoText) logoText.textContent = data.nomeAba || "Lucas & Sayuri";
+            if(mainTitle) mainTitle.textContent = data.tituloCapa || "Nossa História";
+            if(mainSubtitle) mainSubtitle.textContent = data.textoAbaixo || "";
+
+            // Verifica Vídeo da Capa
+            if (data.videoCapa && data.videoCapa !== "") {
+                document.getElementById('hero-video').src = data.videoCapa;
+                document.getElementById('hero-video-wrapper').style.display = 'block';
+            }
+
+            // Configura Botões Call to Action para rodar a música
+            if (data.botaoTexto) {
+                const btnCTA = document.getElementById('main-cta');
+                if(btnCTA) { 
+                    btnCTA.innerHTML = '<i class="ri-play-mini-fill"></i> ' + data.botaoTexto; 
+                    btnCTA.href = "javascript:void(0)";
+                    btnCTA.onclick = toggleMusica;
+                    btnCTA.style.display = 'inline-block'; 
+                }
+                const headerCTA = document.getElementById('header-cta');
+                if(headerCTA) { 
+                    headerCTA.innerHTML = '<i class="ri-play-mini-fill"></i> ' + data.botaoTexto; 
+                    headerCTA.href = "javascript:void(0)";
+                    headerCTA.onclick = toggleMusica;
+                    headerCTA.style.display = 'inline-block'; 
+                }
+            }
+
+            // Constrói Menus e Abas Extras Baseado nos Dados
+            const navContainer = document.getElementById('nav-links-container');
+            const abas = data.abasExtras || {};
+            
+            // Dicionário com temática de casal para renomear as abas
+            const titulosAbas = { 
+                'historia': 'Nossa história', 
+                'sobre': 'Sobre nós', 
+                'lacos': 'Nossos laços', 
+                'familia': 'Nossa família' 
+            };
+
+            if(navContainer) {
+                for (const [chave, conteudoObj] of Object.entries(abas)) {
+                    conteudosAbas[chave] = conteudoObj; 
+                    const li = document.createElement('li');
+                    const titulo = titulosAbas[chave] || "Ler Mais";
+                    li.innerHTML = `<a onclick="abrirAba('${chave}', '${titulo}')">${titulo}</a>`;
+                    navContainer.appendChild(li);
+                }
+            }
+
+            // Remove a tela de carregamento suavemente após montar a tela
+            setTimeout(() => {
+                if(loadingScreen) {
+                    loadingScreen.style.opacity = '0'; 
+                    setTimeout(() => loadingScreen.style.display = 'none', 500); 
+                }
+            }, 600);
+        }
+
+        // Inicia a renderização
+        inicializarSite();
+
+        // ==========================================
+        // LÓGICA DO MODAL DE VÍDEO
+        // ==========================================
+        window.abrirVideoModal = () => {
+            const modal = document.getElementById('video-modal');
+            const modalVideo = document.getElementById('modal-video-player');
+            const heroVideo = document.getElementById('hero-video');
+            
+            if(!heroVideo.src) return; 
+
+            modal.style.display = 'flex';
+            modalVideo.src = heroVideo.src; 
+            
+            heroVideo.pause(); 
+            
+            setTimeout(() => {
+                modal.classList.add('active');
+                modalVideo.play(); 
+            }, 10);
+        };
+
+        window.fecharVideoModal = () => {
+            const modal = document.getElementById('video-modal');
+            const modalVideo = document.getElementById('modal-video-player');
+            const heroVideo = document.getElementById('hero-video');
+            
+            modal.classList.remove('active');
+            
+            setTimeout(() => {
+                modalVideo.pause();
+                modalVideo.src = ""; 
+                modal.style.display = 'none';
+                
+                heroVideo.play().catch(e => console.log("Autoplay prevenido", e)); 
+            }, 400); 
+        };
+    </script>
+</body>
+</html>
